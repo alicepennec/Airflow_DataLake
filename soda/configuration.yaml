@@ -1,0 +1,7 @@
+data_source my_data_source:
+  type: postgres
+  host: postgres
+  username: airflow
+  password: airflow
+  database: jo_data
+  schema: public
