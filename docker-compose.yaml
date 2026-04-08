@@ -71,7 +71,7 @@ x-airflow-common:
     AIRFLOW_CONN_JO_DATA: postgresql+psycopg2://airflow:airflow@postgres:5432/jo_data
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
-    _PIP_ADDITIONAL_REQUIREMENTS: "openpyxl==3.1.2 psycopg2-binary pyocclient==0.6 soda-core==3.3.1 soda-core-postgres==3.3.1 pyarrow boto3 confluent-kafka"
+    _PIP_ADDITIONAL_REQUIREMENTS: "openpyxl==3.1.2 psycopg2-binary pyocclient==0.6 soda-core==3.3.1 soda-core-postgres==3.3.1 pyarrow boto3 confluent-kafka apache-airflow-providers-amazon"
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
