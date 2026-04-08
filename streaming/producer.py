@@ -24,19 +24,26 @@ try:
         for filename in files:
             filepath = os.path.join(INPUT_DIR, filename)
             
-            with open(filepath, 'r', encoding='utf-8') as f:
-                try:
+            data = None
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
+                
+                # ICI : Le fichier est maintenant FERMÉ car on est sorti du "with"
+                
+                if data:
                     # Envoi vers Redpanda
                     producer.produce('jo-stream-topic', json.dumps(data).encode('utf-8'))
                     producer.flush()
-                    
                     print(f"✅ Fichier {filename} envoyé vers Redpanda !")
                     
-                    # Déplacement vers archive pour ne pas l'envoyer deux fois
+                    # Déplacement vers archive (maintenant possible)
                     shutil.move(filepath, os.path.join(ARCHIVE_DIR, filename))
-                except json.JSONDecodeError:
-                    print(f"❌ Erreur de lecture sur {filename}")
+
+            except json.JSONDecodeError:
+                print(f"❌ Erreur de lecture sur {filename}")
+            except Exception as e:
+                print(f"❌ Erreur lors du traitement de {filename} : {e}")
         
         time.sleep(2) # Pause de 2 secondes entre chaque scan
 except KeyboardInterrupt:
