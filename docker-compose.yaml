@@ -70,7 +70,7 @@ x-airflow-common:
     AIRFLOW_CONN_JO_DATA: postgresql+psycopg2://airflow:airflow@postgres:5432/jo_data
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
-    _PIP_ADDITIONAL_REQUIREMENTS: "openpyxl==3.1.2 psycopg2-binary pyocclient==0.6 soda-core==3.3.1 soda-core-postgres==3.3.1 pyarrow"
+    _PIP_ADDITIONAL_REQUIREMENTS: "openpyxl==3.1.2 psycopg2-binary pyocclient==0.6 soda-core==3.3.1 soda-core-postgres==3.3.1 pyarrow boto3 confluent-kafka==2.0.0"
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
@@ -258,5 +258,59 @@ services:
     environment:
       API_URL: http://api:80
 
+  minio:
+    image: minio/minio:latest
+    container_name: jo-data-lake
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-storage:/data
+    restart: always
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    container_name: jo-streaming
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    command: 
+      - redpanda start 
+      - --smp 1 
+      - --reserve-memory 0M
+      - --overprovisioned 
+      - --kafka-addr plaintext://0.0.0.0:29092,external://0.0.0.0:9092
+      - --advertise-kafka-addr plaintext://redpanda:29092,external://localhost:9092
+    restart: always
+
+  streaming-consumer:
+    build: ./streaming
+    container_name: jo-streaming-consumer
+    environment:
+      PYTHONUNBUFFERED: "1"
+      KAFKA_BOOTSTRAP_SERVERS: "redpanda:29092"
+      MINIO_ENDPOINT: "http://minio:9000"
+      MINIO_ACCESS_KEY: "admin"
+      MINIO_SECRET_KEY: "password123"
+      MINIO_BUCKET: "jo-data-lake"
+    depends_on:
+      - redpanda
+      - minio
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: jo-monitoring
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: always
+
 volumes:
   postgres-db-volume: 
+  minio-storage:
