@@ -28,9 +28,7 @@ try:
             try:
                 with open(filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                
-                # ICI : Le fichier est maintenant FERMÉ car on est sorti du "with"
-                
+                             
                 if data:
                     # Envoi vers Redpanda
                     producer.produce('jo-stream-topic', json.dumps(data).encode('utf-8'))
@@ -48,22 +46,3 @@ try:
         time.sleep(2) # Pause de 2 secondes entre chaque scan
 except KeyboardInterrupt:
     print("Arrêt du producer.")
-
-# Simulation avec des données brutes
-""" def delivery_report(err, msg):
-    if err is not None:
-        print(f"Erreur d'envoi : {err}")
-    else:
-        print(f"Message envoyé à {msg.topic()}")
-
-# Simulation d'un flux de résultats
-data = {
-    "id_resultat": 9999,
-    "athlete_nom": "DUPONT",
-    "sport": "Judo",
-    "performance_finale": 10.0,
-    "ts": time.time()
-}
-
-producer.produce('jo-stream-topic', json.dumps(data).encode('utf-8'), callback=delivery_report)
-producer.flush() """
