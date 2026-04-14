@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
@@ -33,9 +33,18 @@ def ingest_csv_to_bronze():
         )
         print(f"✅ Fichier {filename} ingéré avec succès dans s3://{BUCKET_NAME}/{s3_key}")
 
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'retries': 3,                            # Nombre de tentatives en cas d'échec
+    'retry_delay': timedelta(minutes=5),     # Temps d'attente entre deux tentatives
+}
+
 with DAG(
     'ingestion_batch_bronze',
-    start_date=datetime(2025, 1, 1),
+    default_args=default_args,
+    start_date=datetime(2026, 1, 1),
     schedule_interval='@daily',
     catchup=False
 ) as dag:
